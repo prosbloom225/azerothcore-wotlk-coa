@@ -188,6 +188,11 @@ foreach(APPLICATION_NAME ${APPLICATIONS_BUILD_LIST})
       endif()
     endif()
 
+    # Resolve circular static-library dependencies between Playerbots and game.
+    target_link_libraries(${APP_PROJECT_NAME}
+      PRIVATE
+        "$<LINK_GROUP:RESCAN,modules-playerbots,game>")
+
     # Add all dynamic projects as dependency to the worldserver
     if (WORLDSERVER_DYNAMIC_SCRIPT_MODULES_DEPENDENCIES)
       add_dependencies(${APP_PROJECT_NAME} ${WORLDSERVER_DYNAMIC_SCRIPT_MODULES_DEPENDENCIES})

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <unordered_set>
 
@@ -16,6 +17,8 @@ using ClientItemRow = std::array<std::uint32_t, 8>;
 
 std::uint32_t BaseEntry(std::uint32_t entry);
 std::optional<ClientItemRow> ClientRow(std::uint32_t entry);
+std::unique_ptr<ItemTemplate> DeriveTemplate(std::uint32_t entry, ItemTemplate const& base,
+    std::uint32_t itemLevel);
 void HandleStatQuery(WorldSession* session, WorldPacket const& packet);
 bool LiftableEntry(std::uint32_t entry);
 bool NativeScalableEntry(std::uint32_t entry);

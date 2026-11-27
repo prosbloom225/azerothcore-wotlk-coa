@@ -1,6 +1,7 @@
 /* Copyright (C) 2016+ AzerothCore, GNU AGPL v3. */
 
 #include "CoAProfessionRescale.h"
+#include "CoAProfessionToken.h"
 #include "AscensionNativeItemScaling.h"
 #include "CoAZoneScaling.h"
 #include "AscensionCompatOpcodes.h"
@@ -228,6 +229,9 @@ bool IsScalingItem(ItemTemplate const* proto)
 uint32 ClientLevel(Item const* item)
 {
     ItemTemplate const* proto = item->GetTemplate();
+    if (std::uint32_t const level = ProfessionToken::CurrentLevel(item);
+        ProfessionRescale::OwnsItem(proto->ItemId) && level > proto->ItemLevel)
+        return level;
     if (ZoneScaling::OwnsItem(proto->ItemId))
         return proto->ItemLevel;
     if (uint8 const level = StoredLevel(item))
@@ -237,6 +241,8 @@ uint32 ClientLevel(Item const* item)
 
 ItemTemplate const* InstanceTemplate(Item const* item)
 {
+    if (ItemTemplate const* derived = ProfessionToken::Derived(item))
+        return derived;
     if (!enabled.load(std::memory_order_relaxed))
         return nullptr;
 
@@ -512,6 +518,17 @@ bool HandleItemStatQuery(WorldSession* session, WorldPacket const& packet)
     if (!level || !proto)
         return true;
 
+    if (ProfessionRescale::OwnsItem(itemId))
+    {
+        ItemTemplate const* derived = ProfessionToken::DerivedForQuery(itemId, level);
+        if (!derived)
+            return true;
+        ItemLadder::Row const row = ItemLadder::StockRow(*derived, derived->Armor);
+        WorldPacket reply = ItemLadder::BuildItemStatResponse(itemId, level, row, derived);
+        reply.put<uint32>(3 * sizeof(uint32), level);
+        session->SendPacket(&reply);
+        return true;
+    }
     if (ZoneScaling::OwnsItem(itemId))
     {
         SendStatReply(session, itemId, level, proto, true);

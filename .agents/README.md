@@ -8,6 +8,7 @@ Source of truth for this repo's agent rules, skill and docs:
 - `skills/coa-zone-rescaling/` — outdoor level-60 zone conversion workflow and Hellfire input definition
 - `skills/coa-dungeon-rescale/` — level-60 dungeon conversions by zone, difficulty budgets and quest rewards
 - `skills/coa-profession-rescale/` — expansion-scoped profession level gates and crafted-equipment bands
+- `skills/coa-profession-token/` — raid-earned tokens that upgrade crafted equipment by item instance
 - `docs/` — task-scoped agent docs; taxonomy and placement policy in `docs/README.md`
 - `plans/` — per-task plans, specs and investigation notes, gitignored
 

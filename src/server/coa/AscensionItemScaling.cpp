@@ -358,6 +358,7 @@ public:
             "VALUES ({}, {}, {})", entry, baseEntry, lift);
         _records[entry] = Record{ baseEntry, lift, nullptr };
         _entries[{ baseEntry, lift }] = entry;
+        _nextEntry = std::max(_nextEntry, entry + 1);
         return entry;
     }
 
@@ -570,6 +571,13 @@ public:
 uint32 BaseEntry(uint32 entry)
 {
     return Registry::Instance().BaseEntry(entry);
+}
+
+std::unique_ptr<ItemTemplate> DeriveTemplate(uint32 entry, ItemTemplate const& base, uint32 itemLevel)
+{
+    if (!entry || itemLevel <= base.ItemLevel)
+        return nullptr;
+    return BuildTemplate(entry, base, itemLevel - base.ItemLevel, SampleCurves());
 }
 
 std::optional<ClientItemRow> ClientRow(uint32 entry)

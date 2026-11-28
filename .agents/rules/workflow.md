@@ -44,6 +44,7 @@ The rules in `.agents/rules/` win where a superpowers skill differs:
   the report's evidence; the regression proves the fix through `tools/verify_all.py`.
 - Verification commands are `tools/verify_all.py` selections only (see `verification.md`).
 - Worktrees follow `git-safety.md`; a new worktree needs its own build and `--settings` for `verify_all.py`
-  (`docs/coa/verification.md`, Separate worktrees).
+  (`docs/coa/verification.md`, Separate worktrees). Create a worktree that needs its own build with
+  `tools/seed-worktree.sh` (coa-development skill, Seed new worktrees from main).
 - Finishing a branch never merges to `main` locally; it pushes a branch and opens a PR when publication is
   authorized.

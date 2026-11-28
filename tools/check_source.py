@@ -41,6 +41,10 @@ SUITES = {
         'commands': [['tools/test_source.py'], ['tools/test_change_boundaries.py'], ['tools/test_registrations.py'],
                      ['tools/test_comments.py'], ['tools/test_verify_all.py']],
     },
+    'seed-worktree': {
+        'paths': ['tools/seed-worktree.sh', 'tools/seed_worktree.py', 'tools/test_seed_worktree.py'],
+        'commands': [['tools/test_seed_worktree.py']],
+    },
     'molten-core-sql': {
         'paths': ['data/sql/updates/pending_db_world/*molten_core*.sql'],
         'commands': [['tools/test_molten_core_smart_scripts_base_entry.py'],

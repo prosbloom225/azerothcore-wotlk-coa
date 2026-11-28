@@ -113,7 +113,8 @@ assignment, evidence, verification, review and publication requirements still ap
   tests, harnesses or source checks directly. Its build stage compiles the checkout, so include `build` in any
   run that needs current binaries. Older binaries cannot verify changed source. It reads `conf/verify-all.json`
   and `build/` from the checkout it runs in; a new worktree needs `--settings` and its own build (see
-  Separate worktrees in that guide).
+  Separate worktrees in that guide). Create that worktree with `tools/seed-worktree.sh`
+  ([Seed new worktrees from main](../SKILL.md#seed-new-worktrees-from-main)).
 - Use the available authenticated GitHub connector or `gh` and Git. Do not install a plugin for this workflow.
   If access is missing, report the concrete blocker without exposing credentials.
 

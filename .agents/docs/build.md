@@ -33,7 +33,8 @@ that has no `CMakeCache.txt` (with `BUILD_TESTING=ON`), turns testing on in an e
 everything; its `unit` stage runs the Google Test suite in `src/test/` through `ctest`. It never installs.
 Keep the build's worldserver as the gameplay binary so gameplay tests the source just built. The build directory
 belongs to one checkout: a separate worktree needs its own build and a `--settings` file
-([separate worktrees](../../docs/coa/verification.md#separate-worktrees)).
+([separate worktrees](../../docs/coa/verification.md#separate-worktrees)). Create such a worktree with
+`tools/seed-worktree.sh`, which seeds an incremental build from the main checkout's `build-main`.
 
 ## Source discovery and runtime checks
 

@@ -40,27 +40,38 @@ the reference that holds this repository's procedure. Creating or editing this s
 
 ## Seed new worktrees from main
 
-Use `~/tmp` as the base directory for new worktrees. Create each worktree in a
-task-specific subdirectory such as `~/tmp/coa-manastorm-leader-depth`.
+Create every new worktree with `tools/seed-worktree.sh`. Run it from the main checkout,
+whose `build-main` it copies and relocates so the worktree builds incrementally. Do not
+create worktrees, copy build directories or relocate them by hand.
 
-When creating a worktree, check that the primary checkout's `build-main` is idle, then
-copy it to `<worktree>/build-main`. If it is active, ask the user how to proceed before
-copying it. Preserve timestamps and include Ninja metadata and object files. On Linux,
-`cp -a --reflink=auto -- "$main_checkout/build-main" "$worktree/build-main"` makes an
-independent copy when the destination does not exist. Choose a worktree filesystem with
-enough space for a full copy when reflinks are unavailable.
+```bash
+tools/seed-worktree.sh --branch <type>/<short-name> origin/main ~/tmp/coa-<short-name>
+tools/seed-worktree.sh <existing-branch> ~/tmp/coa-<short-name>
+tools/seed-worktree.sh --help
+```
 
-Use the seed as the starting point for the worktree's own incremental build. CMake and
-Ninja record absolute paths, so check that the build configuration resolves to the new
-worktree before invoking it. Reconfigure for the worktree as needed and inspect the planned
-work before launching a build. If relocation would trigger a full rebuild, report that
-before starting it. Use the [separate worktree settings](../../../docs/coa/verification.md#separate-worktrees)
-with the copied build directory.
+- Put worktrees under `~/tmp` in a task-specific directory such as
+  `~/tmp/coa-manastorm-leader-depth`.
+- Start new work with `--branch <type>/<short-name> origin/main`; the script fetches
+  `origin` first.
+- Pass `--settings-from <main checkout settings file>` to write the worktree's
+  `conf/verify-all.json` with its own build directory
+  ([separate worktree settings](../../../docs/coa/verification.md#separate-worktrees)).
+- The script stops when a build is running, when the main checkout's build has pending
+  compiles for the target, or when it cannot validate Ninja's command hashes. Report that to
+  the user and ask how to proceed; pass `--ignore-running` or `--allow-stale` only on their
+  instruction.
+- Its closing dry run is the build plan that "Before starting a build" requires: show the
+  user the compile count and `<worktree>/build-main/seed-worktree-plan.txt`. Report a plan
+  that amounts to a full rebuild before building.
+- If the script fails partway, report the step and its output. Remove the partial worktree
+  only with the user's approval.
 
 ## Before starting a build
 
-Cap compilation at three parallel jobs. Pass `--jobs 3` to `verify_all.py` when it
-runs the build stage, or use a lower job limit.
+Cap compilation at two parallel jobs unless the user explicitly authorizes more. Pass
+`--jobs 2` to `verify_all.py` when it runs the build stage, and `-j 2` to Ninja, or use a
+lower job limit.
 
 Check the build host for active builds immediately before each build launch, including a
 `verify_all.py` invocation that selects the build stage. Check across worktrees and build

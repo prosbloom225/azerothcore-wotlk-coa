@@ -572,6 +572,13 @@ uint32 BaseEntry(uint32 entry)
     return Registry::Instance().BaseEntry(entry);
 }
 
+std::unique_ptr<ItemTemplate> DeriveTemplate(uint32 entry, ItemTemplate const& base, uint32 itemLevel)
+{
+    if (!entry || itemLevel <= base.ItemLevel)
+        return nullptr;
+    return BuildTemplate(entry, base, itemLevel - base.ItemLevel, SampleCurves());
+}
+
 std::optional<ClientItemRow> ClientRow(uint32 entry)
 {
     if (DungeonRescale::OwnsItem(entry))

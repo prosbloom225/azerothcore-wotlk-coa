@@ -209,10 +209,9 @@ omits, in a full worldserver, types defined in other files.
 
 So the compiler verify_all.py tests with is not the one that ships. This change keeps GCC for development:
 
-- Clang with precompiled headers built cold in 166.9 s, but hit only 243 of 1150 files in a second worktree.
-- For a precompiled header, ccache 4.9 refuses the preprocessor mode ("Not considering cached precompiled header
-  in preprocessor mode"), so only a direct-mode hit can help.
-- Direct mode fails because CMake's generated `cmake_pch.hxx` includes the header by absolute path.
+- The earlier Clang 18/PCH experiment built cold in 166.9 s and hit only 243 of 1150 files in a second worktree.
+  This was a measured profile at the time, not a general limitation of Clang PCH; see the newer per-target Ccache
+  test below. Its remaining misses are unresolved.
 
 ## Future work
 

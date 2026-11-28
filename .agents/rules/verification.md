@@ -27,7 +27,7 @@
   `.agents/` or plan changes need no gameplay rerun; a narrow fix reruns its scenarios and those sharing the
   touched spell, aura or stat path; a shared core file (`Unit.cpp`, `StatSystem.cpp`, `SpellMgr`, …) reruns the
   affected suite.
-- Cap builds at three parallel jobs. Pass `--jobs 3` when running the build stage, or choose fewer jobs.
+- Never use more than two build jobs unless the user explicitly authorizes more. Pass `--jobs 2` when running the build stage, or choose fewer jobs.
 - The `codestyle-cpp.py`/`codestyle-sql.py --files` linters are separate; still run them on changed C++ and SQL.
 - Report the final `VERIFY ALL: PASSED|FAILED|INCOMPLETE` line with its `report.json`, the stages that ran,
   unavailable or blocked scope with reasons, and any `batch_sensitive` scenarios. Only `PASSED` is a pass, and

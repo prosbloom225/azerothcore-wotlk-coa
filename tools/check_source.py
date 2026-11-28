@@ -42,7 +42,8 @@ SUITES = {
                      ['tools/test_comments.py'], ['tools/test_verify_all.py']],
     },
     'seed-worktree': {
-        'paths': ['tools/seed-worktree.sh', 'tools/seed_worktree.py', 'tools/test_seed_worktree.py'],
+        'paths': ['tools/seed-worktree.sh', 'tools/seed_worktree.py', 'tools/test_seed_worktree.py',
+                  'src/genrev/CMakeLists.txt'],
         'commands': [['tools/test_seed_worktree.py']],
     },
     'molten-core-sql': {

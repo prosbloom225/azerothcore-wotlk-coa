@@ -44,7 +44,7 @@ target_link_libraries(game-interface
 add_library(game STATIC
   ${PRIVATE_SOURCES})
 
-add_dependencies(game revision.h)
+add_dependencies(game generate_revision_h)
 
 target_include_directories(game
   PRIVATE

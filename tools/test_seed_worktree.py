@@ -2,6 +2,7 @@ import contextlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import struct
@@ -288,6 +289,17 @@ class ScriptEndToEndTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn('pending compiles', result.stderr)
         self.assertFalse((self.root / 'tmp' / 'coa-stale').exists())
+
+
+class GeneratedRevisionTests(unittest.TestCase):
+    def test_no_target_shares_the_generated_revision_header_name(self):
+        root = TOOLS.parent
+        sources = [root / 'src' / 'genrev' / 'CMakeLists.txt', root / 'src' / 'server' / 'apps' / 'CMakeLists.txt',
+                   root / 'src' / 'server' / 'game' / 'CMakeLists.txt', root / 'src' / 'tools' / 'CMakeLists.txt']
+        pattern = re.compile(r'(add_custom_target|add_dependencies|set_target_properties)\([^)]*\brevision\.h\b')
+        for source in sources:
+            self.assertIsNone(pattern.search(source.read_text()), source)
+        self.assertIn('add_custom_target(generate_revision_h ALL', sources[0].read_text())
 
 
 @unittest.skipUnless(HAVE_GIT, 'needs git')

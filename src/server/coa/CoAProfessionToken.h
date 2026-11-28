@@ -4,7 +4,9 @@
 #define COA_PROFESSION_TOKEN_H
 
 #include <cstdint>
+#include <vector>
 
+class Creature;
 class Item;
 class Player;
 struct ItemTemplate;
@@ -22,10 +24,14 @@ bool IsEligibleCraft(Item const* item);
 std::uint32_t CurrentLevel(Item const* item);
 bool Apply(Player* player, Item* rune, Item* target);
 void LoadLevels();
-std::uint32_t StoredLevel(std::uint32_t itemGuid);
 void SetLevel(Item* item, std::uint32_t level);
 ItemTemplate const* Derived(Item const* item);
 ItemTemplate const* DerivedForQuery(std::uint32_t entry, std::uint32_t level);
+bool IsRaidBoss(std::uint32_t entry);
+std::vector<Player*> RaidMembers(Player* owner, Creature const* boss);
+bool AwardRune(Player* player, std::uint32_t bossEntry);
+void LoadGuards();
+std::uint32_t RuneForBoss(std::uint32_t bossEntry);
 }
 
 #endif

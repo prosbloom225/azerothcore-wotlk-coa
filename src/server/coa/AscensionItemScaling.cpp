@@ -358,7 +358,6 @@ public:
             "VALUES ({}, {}, {})", entry, baseEntry, lift);
         _records[entry] = Record{ baseEntry, lift, nullptr };
         _entries[{ baseEntry, lift }] = entry;
-        _nextEntry = std::max(_nextEntry, entry + 1);
         return entry;
     }
 

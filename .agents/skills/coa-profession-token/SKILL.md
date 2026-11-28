@@ -137,3 +137,26 @@ Run selected checks through `tools/verify_all.py` as directed by repository veri
 changes require a build, follow the repository build preflight and confirmation requirements. Report automated
 evidence separately from manual gameplay and client checks. Deployment, installation, and live SQL remain
 separate scopes requiring explicit authorization.
+
+## Implemented pattern
+
+The first implementation targets Molten Core (`CoAProfessionToken`, `Rune of Molten Core` Normal 65, Heroic 68,
+Mythic 72, Ascended 75) and establishes the following reusable pattern:
+
+- Persist the rune's level in `character_item_scaling`, the per-instance store native item scaling already
+  uses. The instance keeps its crafted entry; the server derives the scaled template per instance guid and
+  level from `ItemScaling::DeriveTemplate`, so no shared template, derived item id or client patch is needed.
+  Load only rows whose `item_entry` belongs to `coa_profession_item_budget`, so freed guids reused by other
+  items never inherit a rune level.
+- Serve the derived template through `LocalLevelScaling::InstanceTemplateFor` (equip, apply-mods, disenchant,
+  pricing) and answer the client's item stat query (`0x6FF`) and item query from the same derivation. Update
+  and reapply equipped item mods after a successful upgrade.
+- Keep the instance's random-affix family and recalculate only the suffix factor for the new level
+  (`Item::UpdateItemSuffixFactor`). The derived template carries the target-level pool.
+- Award runes from server code in `OnAfterLootTemplateProcess` for every registered boss entry rather than
+  static `creature_loot_template` rows. Personal loot, shared fished/game-object stores, viewer-based loot
+  scaling and FlexLoot picks bypass creature loot rows and would duplicate or omit the rune. One rune goes to
+  each eligible group member at reward distance, once per boss clear; `coa_profession_token_award` keeps that
+  promise across restarts. Inventory-full is not swallowed: the rune is lost and the member is told.
+- A rune needs no cast spell: the item script handles the use, and an empty spell list on a usable item keeps
+  the client from casting anything.

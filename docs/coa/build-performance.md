@@ -232,3 +232,13 @@ Observed, not verified: in a second worktree, 44 unity batches still missed. CMa
 file by absolute path, inside the source, where `CCACHE_BASEDIR` does not rewrite it. The preprocessed output
 (line markers, `__FILE__` in the `Errors.h` assertions) then names the worktree. `-ffile-prefix-map` could address
 it; not measured.
+
+`game` now sets `UNITY_BUILD_RELOCATABLE`, which CMake 4.0 and later honor: the unity sources include each file by
+repository-relative path. Measured 2026-11-28 with CMake 4.1.2, Clang, ccache 4.11.2, a `build-main` and a
+worktree seeded from it by `tools/seed-worktree.sh` at the same commit: ccache's hash input for `unity_10` differed
+in one line of about a thousand, and all 263 included source paths matched. The remaining line is the precompiled
+header's source. A Clang `.pch` stores the absolute path of the checkout that built it, and ccache's preprocessed
+output turns it into a line marker. A seeded worktree copies main's `.pch` files, and a `.pch` restored from ccache
+carries whichever checkout first compiled it. Both the unity batch and a plain `common` file therefore missed
+against main. Seeded worktrees still build incrementally and hit their own entries; with Clang precompiled headers,
+entries are not shared with the primary checkout. GCC precompiled headers were not measured in this setup.

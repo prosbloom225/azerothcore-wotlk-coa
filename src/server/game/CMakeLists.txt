@@ -72,7 +72,7 @@ if (WITH_GAME_UNITY_BUILD)
     ${CMAKE_CURRENT_SOURCE_DIR}/Spells/SpellMgr.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Warden/WardenMac.cpp
     PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
-  set_target_properties(game PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 8)
+  set_target_properties(game PROPERTIES UNITY_BUILD ON UNITY_BUILD_BATCH_SIZE 8 UNITY_BUILD_RELOCATABLE ON)
 endif()
 
 # Generate precompiled header

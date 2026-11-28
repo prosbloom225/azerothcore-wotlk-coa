@@ -223,6 +223,73 @@ class SeededBuildTests(unittest.TestCase):
         self.assertEqual((self.worktree / 'src' / 'b.c').stat().st_mtime_ns, before_dirty)
 
 
+@unittest.skipUnless(HAVE_NINJA and HAVE_GIT and shutil.which('cmake') and shutil.which('c++'),
+                     'needs ninja, git, cmake and a C++ compiler')
+class ScriptEndToEndTests(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root)
+        self.main = self.root / 'main'
+        files = {
+            'CMakeLists.txt': 'cmake_minimum_required(VERSION 3.16)\nproject(seed CXX)\n'
+                              'file(GLOB_RECURSE MODULE_SOURCES CONFIGURE_DEPENDS modules/*.cpp)\n'
+                              'add_executable(worldserver src/main.cpp src/a.cpp src/b.cpp ${MODULE_SOURCES})\n'
+                              'target_include_directories(worldserver PRIVATE src)\n',
+            '.gitignore': '/build-main/\n/modules/mod-local/\n',
+            'src/shared.h': 'int a();\nint b();\nint local();\n',
+            'src/main.cpp': '#include "shared.h"\nint main() { return a() + b() + local(); }\n',
+            'src/a.cpp': '#include "shared.h"\nint a() { return 0; }\n',
+            'src/b.cpp': '#include "shared.h"\nint b() { return 0; }\n',
+            'modules/mod-local/local.cpp': 'int local() { return 0; }\n',
+        }
+        for name, text in files.items():
+            path = self.main / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+        identity = ['-c', 'user.name=t', '-c', 'user.email=t@t']
+        git('init', '-q', '-b', 'main', cwd=self.main)
+        git('add', '.', cwd=self.main)
+        git(*identity, 'commit', '-q', '-m', 'sources', cwd=self.main)
+        git('switch', '-q', '-c', 'feat/seed-change', cwd=self.main)
+        (self.main / 'src' / 'a.cpp').write_text('#include "shared.h"\nint a() { return 1 - 1; }\n')
+        git(*identity, 'commit', '-q', '-am', 'change a', cwd=self.main)
+        git('switch', '-q', 'main', cwd=self.main)
+        self.build = self.main / 'build-main'
+        subprocess.run(['cmake', '-S', str(self.main), '-B', str(self.build), '-G', 'Ninja'], check=True,
+                       capture_output=True)
+        ninja(self.build, 'worldserver')
+
+    def snapshot(self):
+        return sorted((path.name, path.stat().st_mtime_ns, path.stat().st_size)
+                      for path in self.build.iterdir() if path.is_file())
+
+    def run_script(self, *arguments):
+        return subprocess.run(['bash', str(SCRIPT), '--source', str(self.main), '--ignore-running', *arguments],
+                              capture_output=True, text=True, cwd=self.main)
+
+    def test_seeded_worktree_plans_only_the_branch_changes_and_leaves_the_source_build_alone(self):
+        before = self.snapshot()
+        worktree = self.root / 'tmp' / 'coa-seed-change'
+        result = self.run_script('feat/seed-change', str(worktree))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('compiles:      1 for worldserver', result.stdout)
+        planned = (worktree / 'build-main' / 'seed-worktree-plan.txt').read_text().split()
+        self.assertEqual(planned, ['CMakeFiles/worldserver.dir/src/a.cpp.o'])
+        self.assertTrue((worktree / 'modules' / 'mod-local' / 'local.cpp').is_file())
+        self.assertEqual(self.snapshot(), before)
+        cache = (worktree / 'build-main' / 'CMakeCache.txt').read_text()
+        self.assertIn(f'CMAKE_HOME_DIRECTORY:INTERNAL={worktree}', cache)
+        ninja(worktree / 'build-main', 'worldserver')
+        self.assertIn('no work to do', ninja(worktree / 'build-main', 'worldserver'))
+
+    def test_a_stale_source_build_is_refused(self):
+        (self.main / 'src' / 'b.cpp').write_text('#include "shared.h"\nint b() { return 2 - 2; }\n')
+        result = self.run_script('feat/seed-change', str(self.root / 'tmp' / 'coa-stale'))
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('pending compiles', result.stderr)
+        self.assertFalse((self.root / 'tmp' / 'coa-stale').exists())
+
+
 @unittest.skipUnless(HAVE_GIT, 'needs git')
 class ScriptArgumentTests(unittest.TestCase):
     def run_script(self, *arguments):

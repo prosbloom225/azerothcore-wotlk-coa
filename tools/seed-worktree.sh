@@ -160,7 +160,9 @@ seed save-commands "$source_build" "$work/old_commands.json"
 seed check-hashes "$source_build" "$work/old_commands.json"
 
 step "creating worktree $worktree at $ref"
-git -C "$source_dir" fetch --quiet origin
+if git -C "$source_dir" remote get-url origin >/dev/null 2>&1; then
+    git -C "$source_dir" fetch --quiet origin
+fi
 if [ -n "$new_branch" ]; then
     git -C "$source_dir" worktree add --quiet -b "$new_branch" "$worktree" "$ref"
 elif [ "$detach" -eq 1 ]; then
@@ -189,6 +191,7 @@ for module in "$source_dir"/modules/*/; do
     revision=""
     [ -e "$module/.git" ] && revision=" @ $(git -C "$module" rev-parse --short HEAD 2>/dev/null || echo unknown)"
     echo "  $name$revision"
+    mkdir -p "$worktree/modules"
     cp -a --reflink=auto -- "$source_dir/modules/$name" "$worktree/modules/$name"
 done
 

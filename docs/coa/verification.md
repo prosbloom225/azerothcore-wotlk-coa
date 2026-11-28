@@ -137,13 +137,14 @@ after a run.
 
 `conf/verify-all.json`, the `build` directory, relative settings paths and the world-cache slots all resolve
 inside the checkout that runs `verify_all.py`, and the first two are gitignored. A new worktree therefore has
-no settings and no build. Give it its own `build_directory`; a CMake/Ninja build tree configured for another
-checkout compiles that checkout's sources. Pass `--settings <file>` with absolute paths for the worldserver
-config, MySQL tools and DBC directory. Copy ignored modules needed by the primary build into the worktree before
-configuring, and compare module directories and revisions; omitted local modules can change source discovery and
-compile definitions. The worktree's worldserver reads module configs from its own `<CONF_DIR>/modules`, so create
-that directory or set `server_modules_dir` to it. Run `--plan` in the worktree to see what is still missing, or
-verify from the primary checkout when that is possible.
+no settings and no build, and a CMake/Ninja build tree configured for another checkout compiles that checkout's
+sources. Create the worktree with `tools/seed-worktree.sh` from the primary checkout (`--help` lists its options).
+It copies the ignored modules and the primary checkout's `build-main`, relocates that build so the worktree
+builds incrementally, and ends with the planned compiles. Pass `--settings-from <file>` to write the worktree's
+`conf/verify-all.json` with its own `build_directory`; the file needs absolute paths for the worldserver config,
+MySQL tools and DBC directory. The worktree's worldserver reads module configs from its own `<CONF_DIR>/modules`,
+so create that directory or set `server_modules_dir` to it. Run `--plan` in the worktree to see what is still
+missing, or verify from the primary checkout when that is possible.
 
 The first build of a worktree can reuse another worktree's objects through ccache when both use the same cache
 and `CCACHE_BASEDIR` covers both checkouts. Outside the paths `CCACHE_BASEDIR` rewrites, only `Config.cpp` and
